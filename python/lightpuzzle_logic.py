@@ -11,7 +11,7 @@ class LightPuzzleColor(Enum):
 	MAGENTA = 8
 	CYAN = 9
 
-class LightPuzzleDirections(Enum)
+class LightPuzzleDirections(Enum):
 	NONE = 0x00
 	NORTH = 0x01
 	EAST = 0x02
