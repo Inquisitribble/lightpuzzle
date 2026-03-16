@@ -1,14 +1,5 @@
 from enum import Enum
-
-class LightPuzzleColor(Enum):
-	NONE = 1
-	WHITE = 2
-	RED = 3
-	GREEN = 4
-	BLUE = 5
-	YELLOW = 6
-	MAGENTA = 7
-	CYAN = 8
+from colorutils inport Color
 
 class LightPuzzleDirections(Enum):
 	NONE = 0x00
@@ -24,7 +15,8 @@ class LightPuzzleInsertType(Enum):
 	SPLITTER = 2
 	LIGHT_SOURCE = 3
 	COLOR_CRYSTAL = 4
-	RECEIVER = 5
+	COLOR_FILTER = 5
+	RECEIVER = 6
 
 class NodeAllowedDirections:
 	def __init__(self, allow_north=False, allow_east=False, allow_south=False, allow_west=False, allow_up=False, allow_down=False):
@@ -52,13 +44,13 @@ class NodeAllowedDirections:
 		return (self.allowed_directions & direction) != 0
 
 class LightPuzzleNodeInsert:
-	def __init__(self, insert_orientation=LightPuzzleDirections.NONE, insert_color=LightPuzzleColor.NONE, insert_type=LightPuzzleInsertType.NONE):
+	def __init__(self, insert_orientation=LightPuzzleDirections.NONE, insert_color=Color(web='WHITE'), insert_type=LightPuzzleInsertType.NONE):
 		if isinstance(insert_orientation, LightPuzzleDirections):
 			self.insert_orientation = insert_orientation
 		else
 			raise TypeError('Invalid insert orientation')
 
-		if isinstance(insert_color, LightPuzzleColor):
+		if isinstance(insert_color, Color):
 			self.insert_color = insert_color
 		else
 			raise TypeError('Invalid insert color')
@@ -67,6 +59,20 @@ class LightPuzzleNodeInsert:
 			self.insert_type = insert_type
 		else:
 			raise TypeError('Invalid insert type')
+
+	def combineColors(self, incoming_color):
+		if not isinstance(incoming_color, Color):
+			raise TypeError('Invalid colors provided')
+
+		match self.insert_type:
+			case LightPuzzleInsertType.COLOR_CRYSTAL:
+				if self.insert_color is Color(web='WHITE'):
+					return incoming_color
+				return self.insert_color + incoming_color
+			case LightPuzzleInsertType.COLOR_FILTER:
+				return self.insert_color - incoming_color
+			case _:
+				return incoming_color
 
 class LightPuzzleNode:
 	def __init__(self, allowed_directions, insert):
@@ -82,23 +88,7 @@ class LightPuzzleNode:
 
 		self.insert = LightPuzzleNodeInsert(insert_orientation, insert_color, insert_type)
 
-#TODO: convert this to actually using colors, not an enum
-def combineColors(current_color, incoming_color):
-	if not (isinstance(current_color, LightPuzzleColor) and isinstance(incoming_color, LightPuzzleColor)):
-		raise TypeError('Invalid colors provided')
-
-	if current_color is LightPuzzleColor.NONE or current_color is LightPuzzleColor.WHITE:
-		return incoming_color
-
-	if current_color is LightPuzzleColor.RED:
-		match incoming_color:
-			case LightPuzzleColor.RED:
-				return LightPuzzleColor.RED
-			case LightPuzzleColor.GREEN:
-				return LightPuzzleColor.YELLOW
-
 #TODO: Implement light propagation logic
-#TODO: Implement color combination logic
 
 class LightPuzzle:
 	nodes = []
