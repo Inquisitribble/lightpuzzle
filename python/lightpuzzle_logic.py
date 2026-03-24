@@ -88,11 +88,36 @@ class LightPuzzleNode:
 
 		self.insert = LightPuzzleNodeInsert(insert_orientation, insert_color, insert_type)
 
-#TODO: Implement light propagation logic
-
 class LightPuzzle:
-	nodes = []
+	def __init__(self, max_x=0, max_y=0, max_z=0):
+		self.max_x = max_x
+		self.max_y = max_y
+		self.max_z = max_z
+		self.nodes = {}
 
-#TODO: Figure out what should all go into the constructor here
-#TODO: Add functions to easily add nodes
+	def addNode(self, coordinates, node=None):
+		if coordinates is not None and isinstance(coordinates, tuple) and len(coordinates) is 3:
+			if coordinates[0] > self.max_x:
+				raise ValueError('x value ' + str(coordinates[0]) ' is out of bounds.')
+			if coordinates[1] > self.max_y:
+				raise ValueError('y value ' + str(coordinates[1]) ' is out of bounds.')
+			if coordinates[2] > self.max_z:
+				raise ValueError('z value ' + str(coordinates[2]) ' is out of bounds.')
+		else:
+			raise TypeError('Invalid coordinates provided')
+
+		if node is not None:
+			if not isinstance(node, LightPuzzleNode):
+				raise TypeError('Invalid puzzle node provided')
+			else:
+				try:
+					if self.nodes[coordinates] is not None:
+						raise ValueError('Coordinates ' + str(coordinates) ' is already occupied.') 
+				except KeyError:
+					self.nodes[coordinates] = node
+
+
+
+#TODO: Generate graph from the nodes
+#TODO: Implement light propagation logic
 #TODO: Add function to check if the puzzle is solved
