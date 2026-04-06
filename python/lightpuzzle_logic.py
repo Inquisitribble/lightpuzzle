@@ -1,5 +1,6 @@
 from enum import Enum
 from colorutils inport Color
+import networkx 
 
 class LightPuzzleDirections(Enum):
 	NONE = 0x00
@@ -17,6 +18,7 @@ class LightPuzzleInsertType(Enum):
 	COLOR_CRYSTAL = 4
 	COLOR_FILTER = 5
 	RECEIVER = 6
+	WALL = 7
 
 class NodeAllowedDirections:
 	def __init__(self, allow_north=False, allow_east=False, allow_south=False, allow_west=False, allow_up=False, allow_down=False):
@@ -94,8 +96,13 @@ class LightPuzzle:
 		self.max_y = max_y
 		self.max_z = max_z
 		self.nodes = {}
+		self.is_finalized = False
+		self.graph = networkx.Graph()
 
 	def addNode(self, coordinates, node=None):
+		if self.is_finalized:
+			raise RuntimeError('Puzzle has been finalized, no further additions may be made.')
+
 		if coordinates is not None and isinstance(coordinates, tuple) and len(coordinates) is 3:
 			if coordinates[0] > self.max_x:
 				raise ValueError('x value ' + str(coordinates[0]) ' is out of bounds.')
@@ -104,11 +111,11 @@ class LightPuzzle:
 			if coordinates[2] > self.max_z:
 				raise ValueError('z value ' + str(coordinates[2]) ' is out of bounds.')
 		else:
-			raise TypeError('Invalid coordinates provided')
+			raise TypeError('Invalid coordinates provided.')
 
 		if node is not None:
 			if not isinstance(node, LightPuzzleNode):
-				raise TypeError('Invalid puzzle node provided')
+				raise TypeError('Invalid puzzle node provided.')
 			else:
 				try:
 					if self.nodes[coordinates] is not None:
@@ -116,8 +123,34 @@ class LightPuzzle:
 				except KeyError:
 					self.nodes[coordinates] = node
 
+	def finalize(self):
+		self.is_finalized = True
+
+	def linesUp(node_1, node_2):
+		coordinates_1 = node_1[0]
+		coordinates_2 = node_2[0]
+		matching_coordinates = 0
+
+		if coordinates_1[0] == coordinates_2[0]:
+			matching_coordinates++
+
+		if coordinates_1[1] == coordinates_2[1]:
+			matching_coordinates++
+
+		if coordinates_1[2] == coordinates_2[2]:
+			matching_coordinates++
+
+		return matching_coordinates >= 2
 
 
-#TODO: Generate graph from the nodes
-#TODO: Implement light propagation logic
-#TODO: Add function to check if the puzzle is solved
+	def generateGraph(self):
+		coordinate_list = list(nodes.keys())
+		node_list = list(nodes.values())
+		
+		for node in nodes:
+			nodes_in_line = [other_node for index, other_node in enumerate(nodes.items()) if linesUp(node[0], other_node[0])]
+			#TODO: Now that we've got all of our nodes that line up with our current one, determine if light can pass from one node to another.
+			#	   If light can pass from one node to another, generate an edge.
+
+#TODO: Add a function to determine if the puzzle is solvable.
+#TODO: Add function to check if the puzzle is solved. Perhaps the receivers should be tracked separately. Does Python do references?
