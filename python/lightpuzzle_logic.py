@@ -126,31 +126,52 @@ class LightPuzzle:
 	def finalize(self):
 		self.is_finalized = True
 
-	def linesUp(node_1, node_2):
+	def findColinearAxis(node_1, node_2):
 		coordinates_1 = node_1[0]
 		coordinates_2 = node_2[0]
-		matching_coordinates = 0
+		matching_coordinates = 0x00
 
 		if coordinates_1[0] == coordinates_2[0]:
-			matching_coordinates++
+			matching_coordinates |= 0x001
 
 		if coordinates_1[1] == coordinates_2[1]:
-			matching_coordinates++
+			matching_coordinates |= 0x010
 
 		if coordinates_1[2] == coordinates_2[2]:
-			matching_coordinates++
+			matching_coordinates |= 0x100
 
-		return matching_coordinates >= 2
+		#TODO: Determine if there's a better way of doing this
+		if matching_coordinates is 0x111:
+			return None			
+		elif matching_coordinates is 0x110:
+			return 'X'
+		elif matching_coordinates is 0x101:
+			return 'Y'
+		elif matching_coordinates is 0x011:
+			return 'Z'
+		else:
+			return None
 
 
 	def generateGraph(self):
-		coordinate_list = list(nodes.keys())
-		node_list = list(nodes.values())
+		colinear_nodes_X = set()
+		colinear_nodes_Y = set()
+		colinear_nodes_Z = set()
 		
 		for node in nodes:
-			nodes_in_line = [other_node for index, other_node in enumerate(nodes.items()) if linesUp(node[0], other_node[0])]
-			#TODO: Now that we've got all of our nodes that line up with our current one, determine if light can pass from one node to another.
-			#	   If light can pass from one node to another, generate an edge.
+			for node_to_compare in nodes:
+				colinear_axis = findColinearAxis(node, node_to_compare)
+				if colinear_axis is not None:
+					if colinear_axis is 'X':
+						colinear_nodes_X |= set([node, node_to_compare])
+					elif colinear_axis is 'Y':
+						colinear_nodes_Y |= set([node, node_to_compare])
+					elif colinear_axis is 'Z':
+						colinear_nodes_Z |= set([node, node_to_compare])
+
+		#TODO: Now that we've got all of our nodes that line up with our current one, determine if light can pass from one node to another.
+		#	   If light can pass from one node to another, generate an edge.
+		
 
 #TODO: Add a function to determine if the puzzle is solvable.
 #TODO: Add function to check if the puzzle is solved. Perhaps the receivers should be tracked separately. Does Python do references?
