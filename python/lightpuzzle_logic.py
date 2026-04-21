@@ -97,7 +97,7 @@ class LightPuzzle:
 		self.max_z = max_z
 		self.nodes = {}
 		self.is_finalized = False
-		self.graph = networkx.Graph()
+		self.graph = networkx.DiGraph()
 
 	def addNode(self, coordinates, node=None):
 		if self.is_finalized:
@@ -119,59 +119,68 @@ class LightPuzzle:
 			else:
 				try:
 					if self.nodes[coordinates] is not None:
-						raise ValueError('Coordinates ' + str(coordinates) ' is already occupied.') 
+						raise ValueError('Coordinates ' + str(coordinates) ' is already occupied.')
 				except KeyError:
 					self.nodes[coordinates] = node
 
 	def finalize(self):
 		self.is_finalized = True
 
-	def findColinearAxis(node_1, node_2):
-		coordinates_1 = node_1[0]
-		coordinates_2 = node_2[0]
-		matching_coordinates = 0x00
-
-		if coordinates_1[0] == coordinates_2[0]:
-			matching_coordinates |= 0x001
-
-		if coordinates_1[1] == coordinates_2[1]:
-			matching_coordinates |= 0x010
-
-		if coordinates_1[2] == coordinates_2[2]:
-			matching_coordinates |= 0x100
-
-		#TODO: Determine if there's a better way of doing this
-		if matching_coordinates is 0x111:
-			return None			
-		elif matching_coordinates is 0x110:
-			return 'X'
-		elif matching_coordinates is 0x101:
-			return 'Y'
-		elif matching_coordinates is 0x011:
-			return 'Z'
-		else:
-			return None
-
-
 	def generateGraph(self):
-		colinear_nodes_X = set()
-		colinear_nodes_Y = set()
-		colinear_nodes_Z = set()
-		
-		for node in nodes:
-			for node_to_compare in nodes:
-				colinear_axis = findColinearAxis(node, node_to_compare)
-				if colinear_axis is not None:
-					if colinear_axis is 'X':
-						colinear_nodes_X |= set([node, node_to_compare])
-					elif colinear_axis is 'Y':
-						colinear_nodes_Y |= set([node, node_to_compare])
-					elif colinear_axis is 'Z':
-						colinear_nodes_Z |= set([node, node_to_compare])
+		#check for coordinates co-linear along the X axis
+		for y in range(0, max_y):
+			for z in range(0, max_z):
+				candidate_node = None
+				for x in range(0, max_x):
+					try:
+						node = self.nodes[(x, y, z)]
+						if node is not None:
+							if node[1].directionIsAllowed(LightPuzzleDirections.NORTH):
+								if candidate_node is None:
+									candidate_node = node
+									continue
+								else:
+									if candidate_node[1].directionIsAllowed(LightPuzzleDirections.NORTH):
+										graph.add_edge(node, candidate_node)
+					except KeyError:
+						pass
 
-		#TODO: Now that we've got all of our nodes that line up with our current one, determine if light can pass from one node to another.
-		#	   If light can pass from one node to another, generate an edge.
-		
+		#check for coordinates co-linear along the Y axis
+		for z in range(0, max_y):
+			for x in range(0, max_z):
+				candidate_node = None
+				for y in range(0, max_x):
+					try:
+						node = self.nodes[(x, y, z)]
+						if node is not None:
+							if node[1].directionIsAllowed(LightPuzzleDirections.EAST):
+								if candidate_node is None:
+									candidate_node = node
+									continue
+								else:
+									if candidate_node[1].directionIsAllowed(LightPuzzleDirections.WEST):
+										graph.add_edge(node, candidate_node)
+					except KeyError:
+						pass
 
-#TODO: Add a function to determine if the puzzle is solvable.
-#TODO: Add function to check if the puzzle is solved. Perhaps the receivers should be tracked separately. Does Python do references?
+		#check for coordinates co-linear along the Z axis
+		for x in range(0, max_x):
+			for y in range(0, max_y):
+				candidate_node = None
+				for z in range(0, max_z):
+					try:
+						node = self.nodes[(x, y, z)]
+						if node is not None:
+							if node[1].directionIsAllowed(LightPuzzleDirections.UP):
+								if candidate_node is None:
+									candidate_node = node
+									continue
+								else:
+									if candidate_node[1].directionIsAllowed(LightPuzzleDirections.DOWN):
+										graph.add_edge((node, candidate_node))
+					except KeyError:
+						pass
+
+	def isSolvable(self):
+		#TODO: Determine if a graph is solvable. Find the light sources and receivers, then go from there.
+		return False
