@@ -182,5 +182,17 @@ class LightPuzzle:
 						pass
 
 	def isSolvable(self):
-		#TODO: Determine if a graph is solvable. Find the light sources and receivers, then go from there.
-		return False
+		light_sources = []
+		receivers = []
+		for node in list(self.graph):
+			if node[1].insert_type is LightPuzzleInsertType.LIGHT_SOURCE:
+				light_sources.append(node)
+			else if node[1].insert_type is LightPuzzleInsertType.RECEIVER:
+				receivers.append(node)
+
+		if not light_sources or not receivers:
+			return False
+
+		#TODO: Determine how to traverse the graph starting from the light sources
+
+		return True
