@@ -1,5 +1,5 @@
 from enum import Enum
-from colorutils inport Color
+from colorutils import Color
 import networkx 
 
 class LightPuzzleDirections(Enum):
@@ -10,6 +10,7 @@ class LightPuzzleDirections(Enum):
 	WEST = 0x08
 	UP = 0x010
 	DOWN = 0x020
+	ALL = 0x03F
 
 class LightPuzzleInsertType(Enum):
 	NONE = 1
@@ -49,12 +50,12 @@ class LightPuzzleNodeInsert:
 	def __init__(self, insert_orientation=LightPuzzleDirections.NONE, insert_color=Color(web='WHITE'), insert_type=LightPuzzleInsertType.NONE):
 		if isinstance(insert_orientation, LightPuzzleDirections):
 			self.insert_orientation = insert_orientation
-		else
+		else:
 			raise TypeError('Invalid insert orientation')
 
 		if isinstance(insert_color, Color):
 			self.insert_color = insert_color
-		else
+		else:
 			raise TypeError('Invalid insert color')
 
 		if isinstance(insert_type, LightPuzzleInsertType):
@@ -180,6 +181,13 @@ class LightPuzzle:
 										graph.add_edge((node, candidate_node))
 					except KeyError:
 						pass
+	
+	def subGraphIsSolvable(self, current_node, receivers):
+		for successor in self.graph.successors(current_node):
+			if successor in receivers:
+				return True
+			return subGraphIsSolvable(successor, receivers)
+		return False
 
 	def isSolvable(self):
 		light_sources = []
@@ -193,6 +201,34 @@ class LightPuzzle:
 		if not light_sources or not receivers:
 			return False
 
-		#TODO: Determine how to traverse the graph starting from the light sources
+		for light_source in light_sources:
+			if subGraphIsSolvable(light_source, receivers):
+				return True
 
-		return True
+		return False
+
+
+class TestPuzzle:
+	def test_allowedDirections:
+		for currentDirection in range(LightPuzzleDirections.NONE.value, LightPuzzleDirections.ALL.value):
+			allow_north = currentDirection & LightPuzzleDirections.NORTH.value
+			allow_east = currentDirection & LightPuzzleDirections.EAST.value
+			allow_south = currentDirection & LightPuzzleDirections.SOUTH.value
+			allow_west = currentDirection & LightPuzzleDirections.WEST.value
+			allow_up = currentDirection & LightPuzzleDirections.UP.value
+			allow_down = currentDirection & LightPuzzleDirections.DOWN.value
+
+			allowed_directions = NodeAllowedDirections(allow_north, allow_east, allow_south, allow_west, allow_up, allow_down)
+			
+			if allow_north:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.NORTH)
+			if allow_east:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.EAST)
+			if allow_south:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.SOUTH)
+			if allow_west:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.WEST)
+			if allow_up:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.UP)
+			if allow_down:
+				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.DOWN)
