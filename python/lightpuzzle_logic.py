@@ -6,10 +6,67 @@ class LightPuzzleDirections(Enum):
 	NONE = 0x00
 	NORTH = 0x01
 	EAST = 0x02
+	NORTH_AND_EAST = 0x03
 	SOUTH = 0x04
+	SOUTH_AND_NORTH = 0x05
+	SOUTH_AND_EAST = 0x06
+	SOUTH_AND_NORTH_AND_EAST = 0x07
 	WEST = 0x08
+	WEST_AND_NORTH = 0x09
+	WEST_AND_EAST = 0x0A
+	WEST_AND_NORTH_AND_EAST = 0x0B
+	WEST_AND_SOUTH = 0x0C
+	WEST_AND_SOUTH_AND_NORTH = 0x0D
+	WEST_AND_SOUTH_AND_EAST = 0x0E
+	WEST_AND_SOUTH_AND_NORTH_AND_EAST = 0x0F
 	UP = 0x010
+	UP_AND_NORTH = 0x011
+	UP_AND_EAST = 0x012
+	UP_AND_NORTH_AND_EAST = 0x013
+	UP_AND_SOUTH = 0x014
+	UP_AND_SOUTH_AND_NORTH = 0x015
+	UP_AND_SOUTH_AND_EAST = 0x016
+	UP_AND_SOUTH_AND_NORTH_AND_EAST = 0x017
+	UP_AND_WEST = 0x018
+	UP_AND_WEST_AND_NORTH = 0x019
+	UP_AND_WEST_AND_EAST = 0x01A
+	UP_AND_WEST_AND_NORTH_AND_EAST = 0x01B
+	UP_AND_WEST_AND_SOUTH = 0x01C
+	UP_AND_WEST_AND_SOUTH_AND_NORTH = 0x01D
+	UP_AND_WEST_AND_SOUTH_AND_EAST = 0x01E
+	UP_AND_WEST_AND_SOUTH_AND_NORTH_AND_EAST = 0x01F
 	DOWN = 0x020
+	DOWN_AND_NORTH = 0x021
+	DOWN_AND_EAST = 0x022
+	DOWN_AND_NORTH_AND_EAST = 0x023
+	DOWN_AND_SOUTH = 0x024
+	DOWN_AND_SOUTH_AND_NORTH = 0x025
+	DOWN_AND_SOUTH_AND_EAST = 0x026
+	DOWN_AND_SOUTH_AND_NORTH_AND_EAST = 0x027
+	DOWN_AND_WEST = 0x028
+	DOWN_AND_WEST_AND_NORTH = 0x029
+	DOWN_WEST_AND_EAST = 0x02A
+	DOWN_WEST_AND_NORTH_AND_EAST = 0x02B
+	DOWN_WEST_AND_SOUTH = 0x02C
+	DOWN_WEST_AND_SOUTH_AND_NORTH = 0x02D
+	DOWN_WEST_AND_SOUTH_AND_EAST = 0x02E
+	DOWN_WEST_AND_SOUTH_AND_NORTH_AND_EAST = 0x02F
+	DOWN_AND_UP = 0x030
+	DOWN_AND_UP_AND_NORTH = 0x031
+	DOWN_AND_UP_AND_EAST = 0x032
+	DOWN_AND_UP_AND_NORTH_AND_EAST = 0x033
+	DOWN_AND_UP_AND_SOUTH = 0x034
+	DOWN_AND_UP_AND_SOUTH_AND_NORTH = 0x035
+	DOWN_AND_UP_AND_SOUTH_AND_EAST = 0x036
+	DOWN_AND_UP_AND_SOUTH_AND_NORTH_AND_EAST = 0x037
+	DOWN_AND_UP_AND_WEST = 0x038
+	DOWN_AND_UP_AND_WEST_AND_NORTH = 0x039
+	DOWN_AND_UP_AND_WEST_AND_EAST = 0x03A
+	DOWN_AND_UP_AND_WEST_AND_NORTH_AND_EAST = 0x03B
+	DOWN_AND_UP_AND_WEST_AND_SOUTH = 0x03C
+	DOWN_AND_UP_AND_WEST_AND_SOUTH_AND_NORTH = 0x03D
+	DOWN_AND_UP_AND_WEST_AND_SOUTH_AND_EAST = 0x03E
+	DOWN_AND_UP_AND_WEST_AND_SOUTH_AND_NORTH_AND_EAST = 0x03F
 	ALL = 0x03F
 
 class LightPuzzleInsertType(Enum):
@@ -22,29 +79,14 @@ class LightPuzzleInsertType(Enum):
 	WALL = 7
 
 class NodeAllowedDirections:
-	def __init__(self, allow_north=False, allow_east=False, allow_south=False, allow_west=False, allow_up=False, allow_down=False):
-		self.allowed_directions = 0x00
+	def __init__(self, allowedDirections):
+		if not isinstance(allowedDirections, LightPuzzleDirections):
+			raise TypeError('Invalid insert orientation')
 
-		if allow_north:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.NORTH
-
-		if allow_east:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.EAST
-
-		if allow_south:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.SOUTH
-
-		if allow_west:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.WEST
-
-		if allow_up:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.UP
-
-		if allow_down:
-			self.allowed_directions = allowed_directions | LightPuzzleDirections.DOWN
+		self.allowed_directions = allowedDirections
 
 	def directionIsAllowed(self, direction):
-		return (self.allowed_directions & direction) != 0
+		return (self.allowed_directions.value & direction.value) != 0
 
 class LightPuzzleNodeInsert:
 	def __init__(self, insert_orientation=LightPuzzleDirections.NONE, insert_color=Color(web='WHITE'), insert_type=LightPuzzleInsertType.NONE):
@@ -104,13 +146,13 @@ class LightPuzzle:
 		if self.is_finalized:
 			raise RuntimeError('Puzzle has been finalized, no further additions may be made.')
 
-		if coordinates is not None and isinstance(coordinates, tuple) and len(coordinates) is 3:
+		if coordinates is not None and isinstance(coordinates, tuple) and len(coordinates) == 3:
 			if coordinates[0] > self.max_x:
-				raise ValueError('x value ' + str(coordinates[0]) ' is out of bounds.')
+				raise ValueError('x value ' + str(coordinates[0]) + ' is out of bounds.')
 			if coordinates[1] > self.max_y:
-				raise ValueError('y value ' + str(coordinates[1]) ' is out of bounds.')
+				raise ValueError('y value ' + str(coordinates[1]) + ' is out of bounds.')
 			if coordinates[2] > self.max_z:
-				raise ValueError('z value ' + str(coordinates[2]) ' is out of bounds.')
+				raise ValueError('z value ' + str(coordinates[2]) + ' is out of bounds.')
 		else:
 			raise TypeError('Invalid coordinates provided.')
 
@@ -120,7 +162,7 @@ class LightPuzzle:
 			else:
 				try:
 					if self.nodes[coordinates] is not None:
-						raise ValueError('Coordinates ' + str(coordinates) ' is already occupied.')
+						raise ValueError('Coordinates ' + str(coordinates) + ' is already occupied.')
 				except KeyError:
 					self.nodes[coordinates] = node
 
@@ -195,7 +237,7 @@ class LightPuzzle:
 		for node in list(self.graph):
 			if node[1].insert_type is LightPuzzleInsertType.LIGHT_SOURCE:
 				light_sources.append(node)
-			else if node[1].insert_type is LightPuzzleInsertType.RECEIVER:
+			elif node[1].insert_type is LightPuzzleInsertType.RECEIVER:
 				receivers.append(node)
 
 		if not light_sources or not receivers:
@@ -208,27 +250,27 @@ class LightPuzzle:
 		return False
 
 
-class TestPuzzle:
-	def test_allowedDirections:
-		for currentDirection in range(LightPuzzleDirections.NONE.value, LightPuzzleDirections.ALL.value):
-			allow_north = currentDirection & LightPuzzleDirections.NORTH.value
-			allow_east = currentDirection & LightPuzzleDirections.EAST.value
-			allow_south = currentDirection & LightPuzzleDirections.SOUTH.value
-			allow_west = currentDirection & LightPuzzleDirections.WEST.value
-			allow_up = currentDirection & LightPuzzleDirections.UP.value
-			allow_down = currentDirection & LightPuzzleDirections.DOWN.value
+def test_allowedDirections():
+	for currentDirection in range(LightPuzzleDirections.NONE.value, LightPuzzleDirections.ALL.value):
+		directions = LightPuzzleDirections(currentDirection)
+		allowed_directions = NodeAllowedDirections(directions)
 
-			allowed_directions = NodeAllowedDirections(allow_north, allow_east, allow_south, allow_west, allow_up, allow_down)
-			
-			if allow_north:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.NORTH)
-			if allow_east:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.EAST)
-			if allow_south:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.SOUTH)
-			if allow_west:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.WEST)
-			if allow_up:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.UP)
-			if allow_down:
-				assert allowed_directions.directionIsAllowed(LightPuzzleDirections.DOWN)
+		allow_north = directions.value & LightPuzzleDirections.NORTH.value
+		allow_east = directions.value & LightPuzzleDirections.EAST.value
+		allow_south = directions.value & LightPuzzleDirections.SOUTH.value
+		allow_west = directions.value & LightPuzzleDirections.WEST.value
+		allow_up = directions.value & LightPuzzleDirections.UP.value
+		allow_down = directions.value & LightPuzzleDirections.DOWN.value
+
+		if allow_north:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.NORTH)
+		if allow_east:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.EAST)
+		if allow_south:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.SOUTH)
+		if allow_west:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.WEST)
+		if allow_up:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.UP)
+		if allow_down:
+			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.DOWN)
