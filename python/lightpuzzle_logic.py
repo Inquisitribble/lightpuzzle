@@ -71,12 +71,13 @@ class LightPuzzleDirections(Enum):
 
 class LightPuzzleInsertType(Enum):
 	NONE = 1
-	SPLITTER = 2
-	LIGHT_SOURCE = 3
-	COLOR_CRYSTAL = 4
-	COLOR_FILTER = 5
-	RECEIVER = 6
-	WALL = 7
+	MIRROR = 2
+	SPLITTER = 3
+	LIGHT_SOURCE = 4
+	COLOR_CRYSTAL = 5
+	COLOR_FILTER = 6
+	RECEIVER = 7
+	WALL = 8
 
 class NodeAllowedDirections:
 	def __init__(self, allowedDirections):
@@ -111,11 +112,22 @@ class LightPuzzleNodeInsert:
 
 		match self.insert_type:
 			case LightPuzzleInsertType.COLOR_CRYSTAL:
-				if self.insert_color is Color(web='WHITE'):
+				if self.insert_color == Color(web='WHITE'):
 					return incoming_color
+				elif incoming_color == Color(web='WHITE'):
+					return self.insert_color
 				return self.insert_color + incoming_color
 			case LightPuzzleInsertType.COLOR_FILTER:
-				return self.insert_color - incoming_color
+				resulting_color = incoming_color - self.insert_color 
+				if resulting_color == Color(web='BLACK'):
+					return None
+				return resulting_color
+			case LightPuzzleInsertType.WALL:
+				return None
+			case LightPuzzleInsertType.LIGHT_SOURCE:
+				return None
+			case LightPuzzleInsertType.RECEIVER:
+				return None
 			case _:
 				return incoming_color
 
@@ -274,3 +286,61 @@ def test_allowedDirections():
 			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.UP)
 		if allow_down:
 			assert allowed_directions.directionIsAllowed(LightPuzzleDirections.DOWN)
+
+def test_lightPuzzleNodeInsert():
+	incoming_color = Color(web='WHITE')
+	# Insert with a white color, no particular orientation
+	insert = LightPuzzleNodeInsert()
+	for insert_type_value in range(LightPuzzleInsertType.NONE.value, LightPuzzleInsertType.WALL.value):
+		insert_type = LightPuzzleInsertType(insert_type_value)
+		insert.insert_type = insert_type
+
+		resulting_color = insert.combineColors(incoming_color)
+		match insert_type:
+			case LightPuzzleInsertType.NONE:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.MIRROR:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.SPLITTER:
+				assert resulting_color == incoming_color
+			# We've got a clear color crystal here
+			case LightPuzzleInsertType.COLOR_CRYSTAL:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.LIGHT_SOURCE:
+				assert resulting_color == None
+			case LightPuzzleInsertType.WALL:
+				assert resulting_color == None
+			case LightPuzzleInsertType.RECEIVER:
+				assert resulting_color == None
+			# This is None because we're filtering out the same color coming in
+			case LightPuzzleInsertType.COLOR_FILTER:
+				assert resulting_color == None
+
+	# Insert with a green color, no particular orientation
+	incoming_color = Color(web='RED')
+	insert.insert_color = Color((0, 255, 0))
+	
+	for insert_type_value in range(LightPuzzleInsertType.NONE.value, LightPuzzleInsertType.WALL.value):
+		insert_type = LightPuzzleInsertType(insert_type_value)
+		insert.insert_type = insert_type
+
+		resulting_color = insert.combineColors(incoming_color)
+		match insert_type:
+			case LightPuzzleInsertType.NONE:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.MIRROR:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.SPLITTER:
+				assert resulting_color == incoming_color
+			case LightPuzzleInsertType.COLOR_CRYSTAL:
+				assert resulting_color == Color(web='YELLOW')
+			case LightPuzzleInsertType.LIGHT_SOURCE:
+				assert resulting_color == None
+			case LightPuzzleInsertType.WALL:
+				assert resulting_color == None
+			case LightPuzzleInsertType.RECEIVER:
+				assert resulting_color == None
+			case LightPuzzleInsertType.COLOR_FILTER:
+				assert resulting_color == incoming_color
+
+#TODO: Add tests for puzzle creation and solving logic
